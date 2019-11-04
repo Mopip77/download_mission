@@ -1,0 +1,25 @@
+#!/usr/bin/expect
+
+set timeout 15
+set onedrive_token [lindex $argv 0]
+
+# puts [lindex $argv 0]
+if {$argc == 0} {
+    puts "please input onedrive token"
+    exit 1
+}
+
+spawn rclone config
+expect "*New remote*" {send "n\r"}
+expect "*name*" {send "one\r"}
+expect "*Microsoft OneDrive*" {send "22\r"}
+expect "*client_id*" {send "\r"}
+expect "*client_secret*" {send "\r"}
+expect "*advanced*" {send "n\r"}
+expect "*auto*" {send "n\r"}
+expect "*result>*" {send "$onedrive_token\r"}
+expect "*Your choice>*" {send "1\r"}
+expect "*Chose drive to use:>*" {send "0\r"}
+expect "*Is that okay?*" {send "y\r"}
+expect "*y) Yes this is OK*" {send "y\r"}
+expect "*q) Quit config*" {send "q\r"}

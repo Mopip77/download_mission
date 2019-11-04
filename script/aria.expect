@@ -1,0 +1,8 @@
+#!/usr/bin/expect
+
+set timeout 30
+
+spawn ./aria2.sh
+expect "*请输入数字*" {send "1\r"}
+expect "*默认回车*" {send "\r"}
+expect eof
