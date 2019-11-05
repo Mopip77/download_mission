@@ -11,6 +11,10 @@ ONEDRIVE_BASE_PATH='/share'
 # ken，在本地使用rclone authorize "onedrive" 获取
 ONEDRIVE_TOKEN=''
 
+# version 默认不指定版本号，缺省即使用latest
+#dl_api_version=":v0.0.1"
+#dl_vue_version=":v0.0.1"
+
 apt update
 
 # nginx 部分
@@ -48,15 +52,19 @@ docker run -d \
 # 开启 api docker
 docker run -d \
         -e REDIS_ADDR=redis:6379 \
+        -e ARIA_RPC_PWD=${ARIA_RPC_PWD} \
         -e ONEDRIVE_BASE_PATH=${ONEDRIVE_BASE_PATH} \
         -e ONEDRIVE_TOKEN=${ONEDRIVE_TOKEN} \
         --network=dl \
         --hostname=dl_api \
         -p 3000:3000 \
         -p 6800:6800 \
-        --name=dl_api mopip77/dl_api:v0.0.1
+        --name=dl_api mopip77/dl_api${dl_api_version}
 #开启 vue docker
 docker run -d --network=dl \
         --hostname=vue \
         --name=vue \
-        -p 3001:80 mopip77/dl_vue:v0.0.1
+        -p 3001:80 mopip77/dl_vue${dl_vue_version}
+
+# 由于api容器安装较慢，所以最后输出一下其日志，用于判断部署完成
+docker logs -f dl_api

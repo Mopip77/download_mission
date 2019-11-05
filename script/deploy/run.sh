@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# 进入脚本文件目录，因为之后的脚本都在同级目录
+cd `dirname $0`
 # install aria2
 wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/aria2.sh && chmod +x aria2.sh
 ./aria.expect
@@ -50,4 +52,5 @@ rm install.sh
 ./rclone.expect "${ONEDRIVE_TOKEN}"
 
 # start download api
+cd ${HOME}/api
 ./dl_api

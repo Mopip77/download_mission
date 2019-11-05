@@ -1,9 +1,11 @@
 package service
 
 import (
-	"fmt"
 	"onedrive/executor"
 	"onedrive/serializer"
+	"os"
+	"path"
+	"strconv"
 )
 
 type ShowMissionOutputService struct {
@@ -11,7 +13,6 @@ type ShowMissionOutputService struct {
 }
 
 func (service *ShowMissionOutputService) Output() serializer.Response {
-	fmt.Println("ts:", service.TimeStamp)
 	found := false
 	output := ""
 	// 先在正在执行的任务中查询
@@ -29,9 +30,20 @@ func (service *ShowMissionOutputService) Output() serializer.Response {
 			Data:   output,
 		}
 	} else {
-		return serializer.Response{
-			Status: 1001,
-			Msg:    "未找到该时间对应任务",
+		// 查文件
+		missionLogPath := path.Join(os.Getenv("MISSION_LOG_PATH"), strconv.Itoa(int(service.TimeStamp))) + ".log"
+		content, e := executor.ReadFileHandleBackslashR(missionLogPath)
+		if e != nil {
+			return serializer.Response{
+				Status: 1002,
+				Msg:    "读取任务输出出错",
+				Error: e.Error(),
+			}
+		} else {
+			return serializer.Response{
+				Status: 0,
+				Data:   content,
+			}
 		}
 	}
 }

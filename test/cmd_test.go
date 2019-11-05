@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"log"
 	"onedrive/cache"
 	"onedrive/executor"
 	"os/exec"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -62,3 +65,46 @@ func Test_ls(t *testing.T) {
 		fmt.Println(mission)
 	}
 }
+
+func Test_moni(t *testing.T) {
+	cmd := exec.Command("/Users/mopip77/project/go/onedrive/script/for_this_proj/get_df.sh")
+	bytes, e := cmd.Output()
+	if e != nil {
+		log.Fatal(e)
+	}
+
+	res := strings.Split(string(bytes), "\n")
+	f, e := strconv.ParseFloat(strings.TrimSpace(res[0]), 64)
+	if e != nil {
+		log.Fatal(e)
+	}
+	fmt.Println(f)
+	fmt.Println(strings.TrimSpace(res[1]))
+	fmt.Println(strings.TrimSpace(res[2]))
+}
+
+func Test_time(t *testing.T) {
+	before := time.Now()
+	time.Sleep(5 * time.Second)
+	now := time.Now()
+	fmt.Println("before,", before.Unix())
+	fmt.Println("now,", now.Unix())
+	fmt.Println(now.Unix() - before.Unix())
+}
+
+func Test_output(t *testing.T) {
+	var a []byte
+	fmt.Println(string(a))
+}
+
+
+
+
+
+
+
+
+
+
+
+

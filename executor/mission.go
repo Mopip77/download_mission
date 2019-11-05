@@ -1,11 +1,9 @@
 package executor
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"github.com/go-redis/redis"
-	"io"
 	"log"
 	"onedrive/cache"
 	"os"
@@ -40,16 +38,18 @@ type Mission struct {
 	StartTimeStamp int64 `json:"start_time_stamp"`
 	// 状态
 	State MissionState `json:"state"`
+	// 结束用时/秒, FINISH或DEAD状态的任务才有，其他默认为0
+	MissionUsedTime int64 `json:"mission_used_time"`
 	// command
 	cmd *exec.Cmd
 	// 用于中断任务的函数
 	cancelFunc func()
 	// 下载url的列表文件
 	urlFilePath string
+	// 日志文件
+	logFile *os.File
 	// 用于检测下载文件的chan
 	ch chan bool
-	// stdoutpipe 这个需要在进程执行前创建，所以必须先保存下来
-	stdoutPipe io.ReadCloser
 }
 
 func CreateAndRun(urls []string) *Mission {
@@ -64,33 +64,40 @@ func CreateAndRun(urls []string) *Mission {
 func NewMission(urls []string) *Mission {
 	now := time.Now()
 	nowUnix := strconv.Itoa(int(now.Unix()))
-	folder := path.Join(os.Getenv("HOME"), nowUnix)
-	urlFilePath := folder + ".txt"
-	urlFile, err := os.Create(urlFilePath)
+	videoDLFolder := path.Join(os.Getenv("VIDEO_DL_PATH"), nowUnix)
+	urlFilePath := videoDLFolder + ".txt"
+	missionLogPath := path.Join(os.Getenv("MISSION_LOG_PATH"), nowUnix) + ".log"
+	// 因为该程序的输出重定向到日志文件，所以该日志文件必须在任务执行结束后才能关闭，所以该文件流的关闭函数在start()后执行
+	logFile, err := os.Create(missionLogPath)
 	if err != nil {
 		return nil
 	}
+
+	urlFile, err := os.Create(urlFilePath)
 	defer urlFile.Close()
+	if err != nil {
+		return nil
+	}
+
 	_, err = urlFile.Write([]byte(strings.Join(urls, "\n")))
 	if err != nil {
 		return nil
 	}
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	command := exec.CommandContext(ctx, "bash", os.Getenv("DL_SCRIPT"), nowUnix, urlFilePath)
+	command := exec.CommandContext(ctx, "bash", os.Getenv("DL_SCRIPT"), videoDLFolder, urlFilePath)
+	command.Stdout = logFile
 	mission := Mission{
-		FolderPath:     folder,
-		Urls:           urls,
-		StartTime:      now,
-		StartTimeStamp: now.Unix(),
-		State:          INIT,
-		cmd:            command,
-		cancelFunc:     cancelFunc,
-		urlFilePath:    urlFilePath,
-		ch:             make(chan bool),
-	}
-	readCloser, err := command.StdoutPipe()
-	if err == nil {
-		mission.stdoutPipe = readCloser
+		FolderPath:      videoDLFolder,
+		Urls:            urls,
+		StartTime:       now,
+		StartTimeStamp:  now.Unix(),
+		State:           INIT,
+		MissionUsedTime: 0,
+		cmd:             command,
+		cancelFunc:      cancelFunc,
+		urlFilePath:     urlFilePath,
+		logFile:         logFile,
+		ch:              make(chan bool),
 	}
 	return &mission
 }
@@ -99,6 +106,7 @@ func (mission *Mission) Start() {
 	log.Println("mission START:", mission.StartTimeStamp)
 	go func() {
 		defer close(mission.ch)
+		defer mission.logFile.Close()
 		defer mission.removeDownloadFile()
 		mission.State = RUNNING
 		mission.UpdateOnRedis()
@@ -135,6 +143,7 @@ func (mission *Mission) Start() {
 			mission.State = FINISH
 			log.Println("mission FINISH:", mission.StartTimeStamp)
 		}
+		mission.MissionUsedTime = time.Now().Unix() - mission.StartTime.Unix()
 		mission.ch <- true
 		mission.UpdateOnRedis()
 		G_Executor.DeleteMission(*mission)
@@ -182,27 +191,19 @@ func (mission *Mission) RegisterKeyOnRedis() {
 }
 
 func (mission *Mission) Output() string {
-	if mission.stdoutPipe == nil {
-		return "获取stdou出错..."
-	}
-	// ProcessState == nil 为程序正在运行，!= nil即程序运行完成，并且如果程序运行完成就不能读取stdout输出了
-	if mission.cmd.ProcessState != nil {
-		return "Process finished..."
-	}
-
-	reader := bufio.NewReader(mission.stdoutPipe)
-	readString, e := reader.ReadString('\n')
+	content, e := ReadFileHandleBackslashR(mission.logFile.Name())
 	if e != nil {
 		return ""
+	} else {
+		return content
 	}
-
-	return readString
 }
 
 func (mission *Mission) MissionKeyOnRedis() string {
 	return os.Getenv("MISSION_PREFIX") + strconv.Itoa(int(mission.StartTimeStamp))
 }
 
+// 任务终止或完成，log并删除下载文件
 func (mission *Mission) removeDownloadFile() {
 	log.Println(mission.StartTimeStamp, " is ", mission.State, " remove files...")
 	os.Remove(mission.urlFilePath)
