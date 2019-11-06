@@ -17,5 +17,5 @@ symbol="觉d怼e部z科k恁"
 for file in `ls "${downloadPath}" | sed 's/ /'"${symbol}"'/g'`
 do
   realFileName=`sed 's/'"${symbol}"'/ /g' <<<$file`
-  rclone copy "${downloadPath}/${realFileName}" "one:${ONEDRIVE_BASE_PATH}"
+  rclone copy -v "${downloadPath}/${realFileName}" "one:${ONEDRIVE_BASE_PATH}"
 done

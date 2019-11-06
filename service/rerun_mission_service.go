@@ -26,7 +26,6 @@ func (service *RerunMissionService) Rerun() serializer.Response {
 
 	if found {
 		return serializer.Response{
-			Status: 200,
 			Msg:    "任务重启成功",
 		}
 	} else {
@@ -38,7 +37,6 @@ func (service *RerunMissionService) Rerun() serializer.Response {
 			if e == nil {
 				newMission := executor.CreateAndRun(mission.Urls)
 				return serializer.Response{
-					Status: 0,
 					Data:   newMission,
 				}
 			}

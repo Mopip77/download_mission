@@ -64,7 +64,6 @@ func (service *ListMissionService) List() serializer.Response {
 		res = "[]"
 	}
 	return serializer.Response{
-		Status: 200,
 		Data:   res,
 	}
 }

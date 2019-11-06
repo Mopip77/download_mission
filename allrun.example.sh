@@ -3,17 +3,34 @@
 # 该文件为自动部署脚本，但是测试使用的vps为ubuntu 18，其他种类或版本的linux系统不一定支持
 
 # env
+# 其中，除了ONEDRIVE_TOKEN必须设置，其他都有默认值，详情参见README.md
+
+# 应用ID
+APP_ID=
+APP_PWD=
+# 应用密码
 # aria_prc的密码
-ARIA_RPC_PWD='123'
+ARIA_RPC_PWD=
 # onedrive云上的同步根文件夹
-ONEDRIVE_BASE_PATH='/share'
+ONEDRIVE_BASE_PATH=
 # onedrive的to
 # ken，在本地使用rclone authorize "onedrive" 获取
-ONEDRIVE_TOKEN=''
+ONEDRIVE_TOKEN='必须配置'
 
 # version 默认不指定版本号，缺省即使用latest
 #dl_api_version=":v0.0.1"
 #dl_vue_version=":v0.0.1"
+
+# 由于程序自带了环境变量的默认值，所以如果上方的配置项留空，那么就不传入该配置项
+# 该方法接收配置项项名，如果该配置项不为空(以APP_ID=me为例，传入APP_ID)，那么就返回 "-e APP_ID=me", 如果(APP_ID=)，那么就不返回，docker也就不会传入该配置项
+fmt_docker_env() {
+  env_name=$1
+  eval env_var=`echo '$'$env_name`
+  if [ "$env_var" != "" ]
+  then
+    echo "-e ${env_name}=${env_var}"
+  fi
+}
 
 apt update
 
@@ -52,9 +69,11 @@ docker run -d \
 # 开启 api docker
 docker run -d \
         -e REDIS_ADDR=redis:6379 \
-        -e ARIA_RPC_PWD=${ARIA_RPC_PWD} \
-        -e ONEDRIVE_BASE_PATH=${ONEDRIVE_BASE_PATH} \
         -e ONEDRIVE_TOKEN=${ONEDRIVE_TOKEN} \
+        `fmt_docker_env ARIA_RPC_PWD` \
+        `fmt_docker_env APP_ID` \
+        `fmt_docker_env APP_PWD` \
+        `fmt_docker_env ONEDRIVE_BASE_PATH` \
         --network=dl \
         --hostname=dl_api \
         -p 3000:3000 \

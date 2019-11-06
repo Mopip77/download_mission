@@ -26,7 +26,6 @@ func (service *ShowMissionOutputService) Output() serializer.Response {
 
 	if found {
 		return serializer.Response{
-			Status: 200,
 			Data:   output,
 		}
 	} else {
@@ -41,7 +40,6 @@ func (service *ShowMissionOutputService) Output() serializer.Response {
 			}
 		} else {
 			return serializer.Response{
-				Status: 0,
 				Data:   content,
 			}
 		}

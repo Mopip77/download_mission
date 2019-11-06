@@ -21,7 +21,6 @@ func (service *InterruptMissionService) Interrupt() serializer.Response {
 
 	if found {
 		return serializer.Response{
-			Status: 200,
 			Msg:    "任务终止成功",
 		}
 	} else {

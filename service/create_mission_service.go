@@ -19,7 +19,6 @@ func (service *CreateMissionService) Create() serializer.Response {
 	mission := executor.CreateAndRun(service.Urls)
 
 	return serializer.Response{
-		Status: 200,
 		Data:   mission,
 	}
 }
