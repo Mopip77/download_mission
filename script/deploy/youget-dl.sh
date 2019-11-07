@@ -6,16 +6,14 @@ urlFilePath=$2
 mkdir -p ${downloadPath}
 cd ${downloadPath}
 
-cat $urlFilePath | while read url
+# 由于下面两个过程都需要按行获取，将IFS修改成换行符可以避免空格将一行拆分
+IFS=$'\n'
+for url in `cat ${urlFilePath}`
 do
   you-get ${url}
 done
 
-
-# 由于文件名可能有空格，所以使用一个基本不可能出现的字符替换后再替换回来
-symbol="觉d怼e部z科k恁"
-for file in `ls "${downloadPath}" | sed 's/ /'"${symbol}"'/g'`
+for file in `ls "${downloadPath}"`
 do
-  realFileName=`sed 's/'"${symbol}"'/ /g' <<<$file`
-  rclone copy -v "${downloadPath}/${realFileName}" "one:${ONEDRIVE_BASE_PATH}"
+  rclone copy -v "${downloadPath}/${file}" "one:${ONEDRIVE_BASE_PATH}"
 done

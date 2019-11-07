@@ -1,10 +1,12 @@
 package service
 
 import (
+	"log"
 	"onedrive/cache"
 	"onedrive/executor"
 	"onedrive/serializer"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -20,7 +22,10 @@ func (service *ListMissionService) correctEdge() {
 	}
 
 	if service.Size <= 0 {
-		service.Size = 10
+		var err error
+		if service.Size, err = strconv.Atoi(os.Getenv("DEFAULT_MISSION_COUNT_PER_PAGE")); err != nil {
+			log.Fatalln(err)
+		}
 	}
 }
 
@@ -44,7 +49,7 @@ func (service *ListMissionService) List() serializer.Response {
 				mission := cache.RedisClient.Get(key).Val()
 				resultStr += mission
 				//fmt.Println(mission)
-				if idx != rightBound - 1 {
+				if idx+offset != rightBound-1 {
 					resultStr += ","
 				}
 			}
@@ -54,16 +59,18 @@ func (service *ListMissionService) List() serializer.Response {
 		}
 	} else {
 		// 只展示正在执行的mission
-		missions := executor.G_Executor.Missions
-		if missions != nil {
-			hasResult = true
-			res = missions
+		if executor.G_Executor.Missions != nil {
+			reverseMissions := executor.G_Executor.ReverseRange(service.Page*service.Size, service.Size)
+			if len(reverseMissions) > 0 {
+				hasResult = true
+				res = reverseMissions
+			}
 		}
 	}
 	if !hasResult {
 		res = "[]"
 	}
 	return serializer.Response{
-		Data:   res,
+		Data: res,
 	}
 }

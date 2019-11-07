@@ -56,3 +56,28 @@ func (executor *Executor) DeleteMissionByStartTime(startTime int64) bool {
 	}
 	return false
 }
+
+// due to the order of Executor.Missions is from early to later
+// we need to return the reverse order
+func (executor *Executor) ReverseRange(offset int, size int) []Mission {
+	executor.RLock()
+	defer executor.RUnlock()
+
+	missionsLen := len(executor.Missions)
+	if size <= 0 || offset >= missionsLen {
+		return nil
+	}
+
+	rightBound := missionsLen - 1 - offset
+	leftBound := 0
+	if rightBound + 1 - size >= 0 {
+		leftBound = rightBound + 1 - size
+	}
+
+	reverseCopy := make([]Mission, 0, rightBound - leftBound + 1)
+	for i := rightBound; i >= leftBound; i-- {
+		reverseCopy = append(reverseCopy, *executor.Missions[i])
+	}
+
+	return reverseCopy
+}

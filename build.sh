@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="v0.1.0"
+version="v0.1.1"
 
 GOOS=linux GOARCH=amd64 go build -o dl_api
 docker build -t mopip77/dl_api:${version} ./

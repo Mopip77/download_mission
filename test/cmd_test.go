@@ -8,6 +8,7 @@ import (
 	"onedrive/cache"
 	"onedrive/executor"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -93,8 +94,8 @@ func Test_time(t *testing.T) {
 }
 
 func Test_output(t *testing.T) {
-	var a []byte
-	fmt.Println(string(a))
+	//a := []int{1,2,3,4,5}
+	//for i := range(a[3:2])
 }
 
 func Test_dl(t *testing.T) {
