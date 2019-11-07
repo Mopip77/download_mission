@@ -1,4 +1,4 @@
-FROM python:3.5.8-slim-stretch
+FROM mopip77/dl-server-base
 
 COPY dl_api .env  /root/api/
 COPY ./script /root/api/script

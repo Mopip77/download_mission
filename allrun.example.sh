@@ -62,11 +62,13 @@ apt install -y docker.io
 # 创建一个私有的局域网用于通信
 docker network create dl
 # 开启 redis docker
+docker pull redis
 docker run -d \
         --network=dl \
         --hostname=redis \
         --name=redis redis
 # 开启 api docker
+docker pull mopip77/dl_api${dl_api_version}
 docker run -d \
         -e REDIS_ADDR=redis:6379 \
         -e ONEDRIVE_TOKEN=${ONEDRIVE_TOKEN} \
@@ -80,6 +82,7 @@ docker run -d \
         -p 6800:6800 \
         --name=dl_api mopip77/dl_api${dl_api_version}
 #开启 vue docker
+docker pull mopip77/dl_vue${dl_vue_version}
 docker run -d --network=dl \
         --hostname=vue \
         --name=vue \

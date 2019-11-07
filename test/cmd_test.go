@@ -97,6 +97,16 @@ func Test_output(t *testing.T) {
 	fmt.Println(string(a))
 }
 
+func Test_dl(t *testing.T) {
+	scriptPath := "/Users/mopip77/project/go/onedrive/script/deploy/youget-dl.sh"
+	cmd := exec.Command(scriptPath, "/Users/mopip77/Downloads/tt/cc", "/Users/mopip77/Downloads/tt/b")
+	bytes, e := cmd.Output()
+	if e != nil {
+		log.Fatalln(e)
+	}
+	fmt.Println(string(bytes))
+}
+
 
 
 

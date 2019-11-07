@@ -1,16 +1,16 @@
-#/bin/bash
+#!/bin/bash
 
 downloadPath=$1
-urlFilepath=$2
+urlFilePath=$2
 
-urls=(`cat $2`)
 mkdir -p ${downloadPath}
 cd ${downloadPath}
 
-for url in ${urls[@]}
+cat $urlFilePath | while read url
 do
   you-get ${url}
 done
+
 
 # 由于文件名可能有空格，所以使用一个基本不可能出现的字符替换后再替换回来
 symbol="觉d怼e部z科k恁"
