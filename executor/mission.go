@@ -127,7 +127,7 @@ func (mission *Mission) Start() {
 			}
 			if stat, err := os.Stat(mission.FolderPath); err == nil && stat != nil {
 				// 运行结束后还可以再查一次，可能在间隔中有漏掉的文件，也可能文件被删除了，所以需要先判断文件个数
-				if dlFiles := CommandLs(mission.FolderPath); len(dlFiles) >= len(mission.DownloadFiles) {
+				if dlFiles := CommandLs(mission.FolderPath); len(dlFiles) != 0 {
 					mission.DownloadFiles = dlFiles
 					mission.UpdateOnRedis()
 				}
