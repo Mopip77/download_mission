@@ -12,7 +12,7 @@ if {$argc == 0} {
 spawn rclone config
 expect "*New remote*" {send "n\r"}
 expect "*name*" {send "one\r"}
-expect "*Microsoft OneDrive*" {send "22\r"}
+expect "*Microsoft OneDrive*" {send "23\r"}
 expect "*client_id*" {send "\r"}
 expect "*client_secret*" {send "\r"}
 expect "*advanced*" {send "n\r"}
